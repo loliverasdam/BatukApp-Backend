@@ -3,7 +3,7 @@ const db = require('../connection')
 const Band = require('./Band')
 const Instrument = require('./Instrument')
 const BandHasUser = require('./BandHasUser')
-const UserHasInstrument = require('./UserHasInstrument')
+const UserHasInstrument = require('./UserBandHasInstrument')
 
 const User = db.define('user', {
     iduser: {
@@ -22,6 +22,9 @@ const User = db.define('user', {
     },
     google_id: {
         type: Sequelize.STRING
+    },
+    birth_date: {
+        type: Sequelize.DATE
     }
 }, {tableName: 'user'})
 

@@ -2,6 +2,7 @@ const Sequelize = require('sequelize')
 const db = require('../connection')
 const Song = require('./Song')
 const Event = require('./Event')
+const UserHasInstrument = require('./UserBandHasInstrument')
 
 const Band = db.define('band', {
     idband: {
@@ -32,6 +33,15 @@ Band.hasMany(Event, {
 })
 
 Event.belongsTo(Band, {
+    foreignKey: "band_idband"
+})
+
+/** Relation Band-UserHasInstrument **/
+Band.hasMany(UserHasInstrument, {
+    foreignKey: "band_idband"
+})
+
+UserHasInstrument.belongsTo(Band, {
     foreignKey: "band_idband"
 })
 

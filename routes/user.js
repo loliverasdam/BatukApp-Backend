@@ -113,6 +113,7 @@ router.get('/', (req, res) => {
  */
 router.post('/', (req, res) => {
     User.findOne({
+        ...genericUserBody,
         where: {
             email: req.body.email
         }
