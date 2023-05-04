@@ -1,9 +1,8 @@
 const Sequelize = require('sequelize')
 const db = require('../connection')
-const Band = require('./Band')
 const Instrument = require('./Instrument')
-const BandHasUser = require('./BandHasUser')
-const UserHasInstrument = require('./UserBandHasInstrument')
+const UserHasInstrument = require('./UserBandInstrument')
+const UserBand = require('./UserBand')
 
 const User = db.define('user', {
     iduser: {
@@ -25,28 +24,29 @@ const User = db.define('user', {
     },
     birth_date: {
         type: Sequelize.DATE
+    },
+    profile_photo: {
+        type: Sequelize.STRING
     }
 }, {tableName: 'user'})
 
-/** Relation User-Instrument **/
-User.belongsToMany(Instrument, {
-    through: UserHasInstrument,
-    foreignKey: "user_iduser"
-})
+// /** Relation User-Instrument **/
+// User.belongsToMany(Instrument, {
+//     through: UserHasInstrument,
+//     foreignKey: "user_iduser"
+// })
 
-Instrument.belongsToMany(User, {
-    through: UserHasInstrument,
-    foreignKey: "instrument_idinstrument"
-})
+// Instrument.belongsToMany(User, {
+//     through: UserHasInstrument,
+//     foreignKey: "instrument_idinstrument"
+// })
 
 /** Relation User-Band through BandHasUser **/
-Band.belongsToMany(User, {
-    through: BandHasUser,
+UserBand.belongsTo(User, {
     foreignKey: "band_idband"
 })
 
-User.belongsToMany(Band, {
-    through: BandHasUser,
+User.hasMany(UserBand, {
     foreignKey: "user_iduser"
 })
 

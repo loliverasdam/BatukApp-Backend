@@ -2,34 +2,61 @@ const express = require('express');
 const router = express();
 const Band = require('../classes/Band');
 const User = require('../classes/User');
-const Instrument = require('../classes/Instrument');
-const BandHasUser = require('../classes/BandHasUser');
+const UserBand = require('../classes/UserBand');
 
 const genericUserBody = {
     include: [
         {
-            model: Band,
-            through: {
-                attributes: ["role"]
-            },
-            attributes: {
-                exclude: ["createdAt", "updatedAt"]
-            }
-        },
-        {
-            model: Instrument,
-            through: {
-                attributes: []
-            },
-            attributes: {
-                exclude: ["createdAt", "updatedAt"]
-            }
+            model: UserBand,
+            include: [
+                {
+                    model: Band,
+                    attributes: {
+                        exclude: ["createdAt", "updatedAt"]
+                    }
+                },
+                // {
+                //     model: UserBandInstrument,
+                //     // include: {
+                //     //     model: Instrument,
+                //     //     attributes: {
+                //     //         exclude: ["createdAt", "updatedAt"]
+                //     //     }
+                //     // },
+                //     attributes: ["main_instrument"]
+                // }
+            ],
+            attributes: ["role"]
         }
     ],
     attributes: {
         exclude: ["createdAt", "updatedAt"]
     }
 }
+
+router.get('/band/:idband', (req, res) => {
+    User.findAll({
+        include: {
+            model: Band,
+            where: {
+                idband: req.params.idband
+            },
+        },
+        ...genericUserBody
+    })
+    .then(result => {
+        let parsedResult = result
+        .map(user => {
+                let parsedBands = []
+                user.user_bands.map(uB => {
+                    parsedBands.push({...uB.band.dataValues, role: uB.role })
+                })
+                return {...user.dataValues, user_bands: undefined, bands: parsedBands}
+            })
+        res.json(parsedResult)
+    })
+    .catch(error => res.send(error).status(500))
+})
 
 /**
  * GET A USER WITH CONDITIONS OR ALL USERS
@@ -67,7 +94,6 @@ router.get('/', (req, res) => {
     else {
         let condition = {}
         if (req.query.email) condition = { ...condition, email: req.query.email }
-        if (req.query.idband) condition = { ...condition, idband: req.query.idband }
         if (req.query.iduser) condition = { ...condition, iduser: req.query.iduser }
         if (req.query.google_id) condition = { ...condition, google_id: req.query.google_id }
 
@@ -75,11 +101,16 @@ router.get('/', (req, res) => {
             ...genericUserBody,
             where: condition
         })
-        .then(result =>
-            result
-                ? res.json(result).status(200)
-                : res.json("User not found").status(404)
-        )
+        .then(result => {
+            if (result) {
+                let parsedBands = []
+                result.user_bands.map(uB => {
+                    parsedBands.push({...uB.band.dataValues, role: uB.role })
+                })
+                res.json({...result.dataValues, user_bands: undefined, bands: parsedBands})
+            }
+            else res.json("User not found").status(404)
+        })
         .catch(error => res.send(error).status(500))
     }
 
@@ -112,6 +143,13 @@ router.get('/', (req, res) => {
  *              - application/json
  */
 router.post('/', (req, res) => {
+/**
+ * TODO
+ *
+ * Afegir el tema bandes, en plan, que pugi buscar si el correu pertany a una banda enlloc de un usuari i si quelcom
+ * en manca l'atribut google_id li assigni.
+ */
+
     User.findOne({
         ...genericUserBody,
         where: {
@@ -121,8 +159,13 @@ router.post('/', (req, res) => {
     .then(user => {
         if (user == null) 
             return User.create({...req.body, google_id: req.body.id})
-        else
-            return user
+        else {
+            let parsedBands = []
+            user.user_bands.map(uB => {
+                parsedBands.push({...uB.band.dataValues, role: uB.role })
+            })
+            return {...user.dataValues, user_bands: undefined, bands: parsedBands}
+        }
     })
     .then(result => res.json(result))
     .catch(error => res.send(error).status(500))
@@ -159,6 +202,24 @@ router.post('/assignBand', (req, res) => {
         role: "Member"
     })
     .then(result => res.json(result))
+    .catch(error => res.send(error).status(500))
+})
+
+router.put('/:google_id', (req, res) => {
+    console.log(req.body)
+    let update = {}
+
+    if (req.body.name) update.name = req.body.name
+    if (req.body.dni) update.dni = req.body.dni
+    if (req.body.birth_date) update.birth_date = req.body.birth_date
+    if (req.body.profile_photo) update.profile_photo = req.body.profile_photo
+
+    User.update(update, {
+        where: {
+            google_id: req.params.google_id
+        }
+    })
+    .then(_ => res.json("Correctly Updated").status(200))
     .catch(error => res.send(error).status(500))
 })
 

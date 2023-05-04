@@ -2,7 +2,7 @@ const Sequelize = require('sequelize')
 const db = require('../connection')
 const Song = require('./Song')
 const Event = require('./Event')
-const UserHasInstrument = require('./UserBandHasInstrument')
+const UserBand = require('./UserBand')
 
 const Band = db.define('band', {
     idband: {
@@ -13,7 +13,19 @@ const Band = db.define('band', {
     name: {
         type: Sequelize.STRING
     },
+    email: {
+        type: Sequelize.STRING
+    },
     location: {
+        type: Sequelize.STRING
+    },
+    nif: {
+        type: Sequelize.STRING
+    },
+    profile_photo: {
+        type: Sequelize.STRING
+    },
+    google_id: {
         type: Sequelize.STRING
     }
 }, {tableName: 'band'})
@@ -36,12 +48,12 @@ Event.belongsTo(Band, {
     foreignKey: "band_idband"
 })
 
-/** Relation Band-UserHasInstrument **/
-Band.hasMany(UserHasInstrument, {
+/** Relation Band-UserBand **/
+Band.hasMany(UserBand, {
     foreignKey: "band_idband"
 })
 
-UserHasInstrument.belongsTo(Band, {
+UserBand.belongsTo(Band, {
     foreignKey: "band_idband"
 })
 
