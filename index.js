@@ -12,11 +12,11 @@ app.set('view engine', 'jade')
 app.use(bodyParser.json());
 
 //Listen to the port
-app.listen(5001, () => console.log("BatukApp API runnig in port 5001"))
+app.listen(app.get("port"), () => console.log("BatukApp API runnig in port " + app.get("port")))
 
 /* GET home page. */
 app.get('/', (req, res) => {
     res.render('index', { title: 'Express' });
 });
-  
+
 module.exports = app;

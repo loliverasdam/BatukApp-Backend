@@ -3,6 +3,7 @@ const db = require('../connection')
 const Instrument = require('./Instrument')
 const UserHasInstrument = require('./UserBandInstrument')
 const UserBand = require('./UserBand')
+const Band = require('./Band')
 
 const User = db.define('user', {
     iduser: {
@@ -41,12 +42,23 @@ const User = db.define('user', {
 //     foreignKey: "instrument_idinstrument"
 // })
 
-/** Relation User-Band through BandHasUser **/
+/** Relation User-UserBand **/
 UserBand.belongsTo(User, {
-    foreignKey: "band_idband"
+    foreignKey: "user_iduser"
 })
 
 User.hasMany(UserBand, {
+    foreignKey: "user_iduser"
+})
+
+/** Relation User-Band through UserBand **/
+Band.belongsToMany(User, {
+    through: UserBand,
+    foreignKey: "band_idband"
+})
+
+User.belongsToMany(Band, {
+    through: UserBand,
     foreignKey: "user_iduser"
 })
 
