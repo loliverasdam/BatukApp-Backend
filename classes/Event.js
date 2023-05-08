@@ -23,7 +23,7 @@ const Event = db.define('event', {
         type: Sequelize.BOOLEAN
     },
     status: {
-        type: ENUM('Per confirmar','Confirmat','Anulat','Acabat')
+        type: Sequelize.ENUM('Per confirmar','Confirmat','Anulat','Acabat')
     }
 }, {tableName: 'event'})
 

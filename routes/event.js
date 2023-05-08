@@ -82,6 +82,47 @@ router.get('/:idband/month/:month/year/:year', (req, res) => {
     .catch(error => res.send(error).status(500))
 })
 
+router.get("/:idevent", (req, res) => {
+    Event.findOne({
+        where: {
+            idevent: req.params.idevent
+        },
+        include: [
+            {
+                model: Band,
+                attributes: {
+                    exclude: ["createdAt", "updatedAt"]
+                }
+            },
+            {
+                model: Assistance,
+                include: [
+                    {
+                        model: User,
+                        attributes: {
+                            exclude: ["createdAt", "updatedAt"]
+                        }
+                    },
+                    {
+                        model: Instrument,
+                        attributes: {
+                            exclude: ["createdAt", "updatedAt"]
+                        }
+                    },
+                ],
+                attributes: {
+                    exclude: ["createdAt", "updatedAt"]
+                }
+            }
+        ],
+        attributes: {
+            exclude: ["createdAt", "updatedAt", "band_idband"]
+        }
+    })
+    .then(result => res.json(result))
+    .catch(error => res.send(error).status(500))
+})
+
 /**
  * PUT AN EVENT INFO
  * 

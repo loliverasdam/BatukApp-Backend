@@ -42,5 +42,4 @@ Instrument.hasMany(Assistance, {
     foreignKey: "instrument_idinstrument"
 })
 
-
 module.exports = Assistance
