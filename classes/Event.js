@@ -18,6 +18,12 @@ const Event = db.define('event', {
     },
     datetime: {
         type: Sequelize.DATE
+    },
+    private: {
+        type: Sequelize.BOOLEAN
+    },
+    status: {
+        type: ENUM('Per confirmar','Confirmat','Anulat','Acabat')
     }
 }, {tableName: 'event'})
 
