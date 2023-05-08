@@ -10,6 +10,7 @@ var bandController = require('./routes/band');
 var songController = require('./routes/song');
 var eventController = require('./routes/event');
 var assistanceController = require('./routes/assistance');
+var instrumentsController = require('./routes/instruments');
 
 app.use('/', indexController);
 app.use('/users', userController);
@@ -17,6 +18,7 @@ app.use('/bands', bandController);
 app.use('/songs', songController);
 app.use('/events', eventController);
 app.use('/assistances', assistanceController);
+app.use('/instruments', instrumentsController);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

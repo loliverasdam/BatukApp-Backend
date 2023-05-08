@@ -3,6 +3,8 @@ const db = require('../connection')
 const Song = require('./Song')
 const Event = require('./Event')
 const UserBand = require('./UserBand')
+const Instrument = require('./Instrument')
+const BandInstrument = require('./BandInstrument')
 
 const Band = db.define('band', {
     idband: {
@@ -55,6 +57,17 @@ Band.hasMany(UserBand, {
 
 UserBand.belongsTo(Band, {
     foreignKey: "band_idband"
+})
+
+/** Relation Band-Instruments **/
+Band.belongsToMany(Instrument, {
+    through: BandInstrument,
+    foreignKey: "band_idband"
+})
+
+Instrument.belongsToMany(Band, {
+    through: BandInstrument,
+    foreignKey: "instrument_idinstrument"
 })
 
 module.exports = Band

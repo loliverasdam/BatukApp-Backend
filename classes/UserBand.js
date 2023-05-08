@@ -1,6 +1,7 @@
 const Sequelize = require('sequelize')
 const db = require('../connection')
 const UserBandInstrument = require('./UserBandInstrument')
+const Instrument = require('./Instrument')
 
 const UserBand = db.define('user_band', {
     iduser_band: {
@@ -20,6 +21,17 @@ UserBand.hasMany(UserBandInstrument, {
 
 UserBandInstrument.belongsTo(UserBand, {
     foreignKey: "user_band_iduser_band"
+})
+
+/** Relation UserBandInstrument-Instrument **/
+UserBand.belongsToMany(Instrument, {
+    through: UserBandInstrument,
+    foreignKey: "user_band_iduser_band"
+})
+
+Instrument.belongsToMany(UserBand, {
+    through: UserBandInstrument,
+    foreignKey: "instrument_idinstrument"
 })
 
 module.exports = UserBand
