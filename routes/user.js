@@ -3,6 +3,7 @@ const router = express();
 const Band = require('../classes/Band');
 const User = require('../classes/User');
 const UserBand = require('../classes/UserBand');
+const Instrument = require('../classes/Instrument');
 
 const genericUserBody = {
     include: [
@@ -14,17 +15,7 @@ const genericUserBody = {
                     attributes: {
                         exclude: ["createdAt", "updatedAt"]
                     }
-                },
-                // {
-                //     model: UserBandInstrument,
-                //     // include: {
-                //     //     model: Instrument,
-                //     //     attributes: {
-                //     //         exclude: ["createdAt", "updatedAt"]
-                //     //     }
-                //     // },
-                //     attributes: ["main_instrument"]
-                // }
+                }
             ],
             attributes: ["role"]
         }
@@ -36,24 +27,57 @@ const genericUserBody = {
 
 router.get('/band/:idband', (req, res) => {
     User.findAll({
-        include: {
-            model: Band,
-            where: {
-                idband: req.params.idband
-            },
+        // ...genericUserBody,
+        attributes: {
+            exclude: ["createdAt", "updatedAt"]
         },
-        ...genericUserBody
+        include: {
+            model: UserBand,
+            required: true,
+            include: [
+                {
+                    model: Band,
+                    attributes: {
+                        exclude: ["createdAt", "updatedAt"]
+                    },
+                    where: {
+                        idband: req.params.idband
+                    }
+                },
+                {
+                    model: Instrument,
+                    attributes: {
+                        exclude: ["createdAt", "updatedAt"]
+                    },
+                    through: {
+                        attributes: ["main_instrument"]
+                    }
+                }
+            ],
+            attributes: {
+                exclude: ["createdAt", "updatedAt", "user_iduser", "band_idband", "iduser_band"]
+            }
+        }
     })
     .then(result => {
-        let parsedResult = result
-        .map(user => {
-                let parsedBands = []
-                user.user_bands.map(uB => {
-                    parsedBands.push({...uB.band.dataValues, role: uB.role })
+        res.json(
+            result.map(user => {
+                let parsedInstruments = []
+                user.user_bands[0].instruments.map(i => {
+                    parsedInstruments.push({
+                        ...i.dataValues,
+                        main_instrument: i.dataValues.user_band_instrument.main_instrument,
+                        user_band_instrument: undefined
+                    })
                 })
-                return {...user.dataValues, user_bands: undefined, bands: parsedBands}
+                return {
+                    ...user.dataValues,
+                    role: user.user_bands[0].role,
+                    instruments: parsedInstruments,
+                    user_bands: undefined
+                }
             })
-        res.json(parsedResult)
+        )
     })
     .catch(error => res.send(error).status(500))
 })
