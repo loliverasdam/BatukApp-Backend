@@ -15,4 +15,14 @@ router.get('/test/', (req, res) => {
     .catch(error => res.send(error).status(500))
 })
 
+router.put('/:idband', (req, res) => {
+    Band.update(req.body, {
+        where: {
+            idband: req.params.idband
+        }
+    })
+    .then(result => res.json(result))
+    .catch(error => res.send(error).status(500))
+})
+
 module.exports = router;
