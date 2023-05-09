@@ -38,7 +38,7 @@ const genericEventBody = {
         }
     ],
     attributes: {
-        exclude: ["createdAt", "updatedAt"]
+        exclude: ["createdAt", "updatedAt", "band_idband"]
     }
 }
 
@@ -63,60 +63,40 @@ const genericEventBody = {
  *          produces:
  *              - application/json
  */
-router.get('/:idband/month/:month/year/:year', (req, res) => {
+router.get('/month/:month/year/:year', (req, res) => {
     let parsedDate = moment(`${req.params.year}-${req.params.month}-1`, 'YYYY-MM-DD')
     let endDate = moment(parsedDate).add(1, 'month').add(7, 'days')
     let startDate = moment(parsedDate).subtract(7, 'days');
 
-    Event.findAll({
-        ...genericEventBody,
-        where: {
-            band_idband: req.params.idband,
-            datetime: {
-                [Op.lte]: endDate,
-                [Op.gte]: startDate
+    const getGenericEvents = condition => {
+        Event.findAll({
+            ...genericEventBody,
+            where: {
+                ...condition,
+                datetime: {
+                    [Op.lte]: endDate,
+                    [Op.gte]: startDate
+                }
             }
-        }
-    })
-    .then(result => res.json(result))
-    .catch(error => res.send(error).status(500))
+        })
+        .then(result => res.json(result))
+        .catch(error => res.send(error).status(500))
+    }
+
+    if (req.query.iduser)
+        User.findOne({ where: { iduser: req.query.iduser }, include: Band })
+        .then(user => getGenericEvents({ band_idband: user.bands.map(b => b.idband) }))
+    else if (req.query.idband)
+        getGenericEvents({ band_idband: req.query.idband })
+    else
+        getGenericEvents({})
 })
 
 router.get("/:idevent", (req, res) => {
     Event.findOne({
+        ...genericEventBody,
         where: {
             idevent: req.params.idevent
-        },
-        include: [
-            {
-                model: Band,
-                attributes: {
-                    exclude: ["createdAt", "updatedAt"]
-                }
-            },
-            {
-                model: Assistance,
-                include: [
-                    {
-                        model: User,
-                        attributes: {
-                            exclude: ["createdAt", "updatedAt"]
-                        }
-                    },
-                    {
-                        model: Instrument,
-                        attributes: {
-                            exclude: ["createdAt", "updatedAt"]
-                        }
-                    },
-                ],
-                attributes: {
-                    exclude: ["createdAt", "updatedAt"]
-                }
-            }
-        ],
-        attributes: {
-            exclude: ["createdAt", "updatedAt", "band_idband"]
         }
     })
     .then(result => res.json(result))
