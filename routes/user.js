@@ -8,16 +8,16 @@ const Instrument = require('../classes/Instrument');
 const genericUserBody = {
     include: [
         {
-            model: UserBand,
-            include: [
-                {
-                    model: Band,
-                    attributes: {
-                        exclude: ["createdAt", "updatedAt"]
-                    }
+            model: Band,
+            attributes: {
+                exclude: ["createdAt", "updatedAt"]
+            },
+            include: {
+                model: UserBand,
+                include: {
+                    model: Instrument
                 }
-            ],
-            attributes: ["role"]
+            }
         }
     ],
     attributes: {
@@ -27,7 +27,6 @@ const genericUserBody = {
 
 router.get('/band/:idband', (req, res) => {
     User.findAll({
-        // ...genericUserBody,
         attributes: {
             exclude: ["createdAt", "updatedAt"]
         },
@@ -137,7 +136,6 @@ router.get('/', (req, res) => {
         })
         .catch(error => res.send(error).status(500))
     }
-
 })
 
 /**
@@ -167,28 +165,94 @@ router.get('/', (req, res) => {
  *              - application/json
  */
 router.post('/', (req, res) => {
-/**
- * TODO
- *
- * Afegir el tema bandes, en plan, que pugi buscar si el correu pertany a una banda enlloc de un usuari i si quelcom
- * en manca l'atribut google_id li assigni.
- */
-
     User.findOne({
-        ...genericUserBody,
         where: {
             email: req.body.email
+        },
+        include: [
+            {
+                model: Band,
+                attributes: {
+                    exclude: ["createdAt", "updatedAt"]
+                },
+                through: {
+                    attributes: []
+                },
+                include: {
+                    model: UserBand,
+                    include: {
+                        model: Instrument,
+                        attributes: {
+                            exclude: ["createdAt", "updatedAt"]
+                        },
+                    }
+                }
+            }
+        ],
+        attributes: {
+            exclude: ["createdAt", "updatedAt"]
         }
     })
     .then(user => {
-        if (user == null) 
-            return User.create({...req.body, google_id: req.body.id})
-        else {
-            let parsedBands = []
-            user.user_bands.map(uB => {
-                parsedBands.push({...uB.band.dataValues, role: uB.role })
+        if (user == null){
+            return Band.findOne({
+                where: {
+                    email: req.body.email
+                },
+                include: {
+                    model: User,
+                    attributes: {
+                        exclude: ["createdAt", "updatedAt"]
+                    },
+                    include: {
+                        model: UserBand,
+                        include: {
+                            model: Instrument,
+                            attributes: {
+                                exclude: ["createdAt", "updatedAt"]
+                            },
+                        }
+                    }
+                },
+                attributes: {
+                    exclude: ["createdAt", "updatedAt"]
+                }
             })
-            return {...user.dataValues, user_bands: undefined, bands: parsedBands}
+            .then(band => {
+                const parseBand = band => {
+                    return {
+                        ...band.dataValues,
+                        users: users.map(user => {
+                            return {
+                                ...user.dataValues,
+                                role: user.dataValues.user_band.role,
+                                user_band: undefined
+                            }
+                        })
+                    }
+                }
+                if (band == null)
+                    return User.create({...req.body, google_id: req.body.id})
+                else {
+                    return band.google_id == null || band.google_id != req.body.id
+                        ? band.update({ google_id: req.body.id }).then(band => parseBand(band))
+                        : parseBand(band)
+                }
+            })
+        }
+        else {
+            return {
+                ...user.dataValues,
+                bands: user.bands.map(band => {
+                    let user_band = band.user_bands.filter(uB => uB.user_iduser == user.iduser)[0]
+                    return {
+                        ...band.dataValues,
+                        role: user_band.role,
+                        user_bands: undefined,
+                        instruments: user_band.instruments.map(instrument => { return { ...instrument.dataValues, main_instrument: instrument.dataValues.user_band_instrument.main_instrument, user_band_instrument: undefined }})
+                    }
+                })
+            }
         }
     })
     .then(result => res.json(result))
@@ -230,13 +294,12 @@ router.post('/assignBand', (req, res) => {
 })
 
 router.put('/:google_id', (req, res) => {
-    console.log(req.body)
-    let update = {}
-
-    if (req.body.name) update.name = req.body.name
-    if (req.body.dni) update.dni = req.body.dni
-    if (req.body.birth_date) update.birth_date = req.body.birth_date
-    if (req.body.profile_photo) update.profile_photo = req.body.profile_photo
+    let update = {
+        name: req.body.name || undefined,
+        dni: req.body.dni || undefined,
+        birth_date: req.body.birth_date || undefined,
+        profile_photo: req.body.profile_photo || undefined,
+    }
 
     User.update(update, {
         where: {

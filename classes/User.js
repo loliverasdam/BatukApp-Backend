@@ -1,7 +1,5 @@
 const Sequelize = require('sequelize')
 const db = require('../connection')
-const Instrument = require('./Instrument')
-const UserHasInstrument = require('./UserBandInstrument')
 const UserBand = require('./UserBand')
 const Band = require('./Band')
 
@@ -30,17 +28,6 @@ const User = db.define('user', {
         type: Sequelize.STRING
     }
 }, {tableName: 'user'})
-
-// /** Relation User-Instrument **/
-// User.belongsToMany(Instrument, {
-//     through: UserHasInstrument,
-//     foreignKey: "user_iduser"
-// })
-
-// Instrument.belongsToMany(User, {
-//     through: UserHasInstrument,
-//     foreignKey: "instrument_idinstrument"
-// })
 
 /** Relation User-UserBand **/
 UserBand.belongsTo(User, {
