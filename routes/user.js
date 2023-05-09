@@ -222,7 +222,7 @@ router.post('/', (req, res) => {
                 const parseBand = band => {
                     return {
                         ...band.dataValues,
-                        users: users.map(user => {
+                        users: band.dataValues.users.map(user => {
                             return {
                                 ...user.dataValues,
                                 role: user.dataValues.user_band.role,
