@@ -4,6 +4,7 @@ const Band = require('../classes/Band');
 const User = require('../classes/User');
 const UserBand = require('../classes/UserBand');
 const Instrument = require('../classes/Instrument');
+const Song = require('../classes/Song');
 
 const genericUserBody = {
     include: [
@@ -178,15 +179,23 @@ router.post('/', (req, res) => {
                 through: {
                     attributes: []
                 },
-                include: {
-                    model: UserBand,
-                    include: {
-                        model: Instrument,
+                include: [
+                    {
+                        model: UserBand,
+                        include: {
+                            model: Instrument,
+                            attributes: {
+                                exclude: ["createdAt", "updatedAt"]
+                            },
+                        }
+                    },
+                    {
+                        model: Song,
                         attributes: {
-                            exclude: ["createdAt", "updatedAt"]
-                        },
+                            exclude: ["createdAt", "updatedAt", "band_idband"]
+                        }
                     }
-                }
+                ]
             }
         ],
         attributes: {
@@ -199,21 +208,29 @@ router.post('/', (req, res) => {
                 where: {
                     email: req.body.email
                 },
-                include: {
-                    model: User,
-                    attributes: {
-                        exclude: ["createdAt", "updatedAt"]
-                    },
-                    include: {
-                        model: UserBand,
+                include: [
+                        {
+                        model: User,
+                        attributes: {
+                            exclude: ["createdAt", "updatedAt"]
+                        },
                         include: {
-                            model: Instrument,
-                            attributes: {
-                                exclude: ["createdAt", "updatedAt"]
-                            },
+                            model: UserBand,
+                            include: {
+                                model: Instrument,
+                                attributes: {
+                                    exclude: ["createdAt", "updatedAt"]
+                                },
+                            }
+                        }
+                    },
+                    {
+                        model: Song,
+                        attributes: {
+                            exclude: ["createdAt", "updatedAt", "band_idband"]
                         }
                     }
-                },
+                ],
                 attributes: {
                     exclude: ["createdAt", "updatedAt"]
                 }
@@ -226,6 +243,7 @@ router.post('/', (req, res) => {
                             return {
                                 ...user.dataValues,
                                 role: user.dataValues.user_band.role,
+                                user_bands: undefined,
                                 user_band: undefined
                             }
                         })
