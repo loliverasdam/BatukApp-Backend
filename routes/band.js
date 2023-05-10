@@ -2,6 +2,7 @@ const express = require('express');
 const router = express();
 const Band = require('../classes/Band');
 const UserBandInstrument = require('../classes/UserBandInstrument');
+const Event = require('../classes/Event');
 
 const genericBandBody = {
     attributes: {
@@ -15,10 +16,17 @@ router.get('/test/', (req, res) => {
     .catch(error => res.send(error).status(500))
 })
 
-router.put('/:idband', (req, res) => {
-    Band.update(req.body, {
+router.get('/public', (req, res) => {
+    Band.findAll({
+        include: {
+            model: Event,
         where: {
-            idband: req.params.idband
+                private: false
+            },
+            attributes: []
+        },
+        attributes: {
+            exclude: ["createdAt", "updatedAt"]
         }
     })
     .then(result => res.json(result))
