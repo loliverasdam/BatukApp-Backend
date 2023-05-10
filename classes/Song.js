@@ -9,6 +9,9 @@ const Song = db.define('song', {
     },
     url: {
         type: Sequelize.STRING
+    },
+    name: {
+        type: Sequelize.STRING
     }
 }, {tableName: 'song'})
 
