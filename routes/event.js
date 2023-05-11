@@ -42,6 +42,15 @@ const genericEventBody = {
     }
 }
 
+const getGenericEvents = (res, condition) => {
+    Event.findAll({
+        ...genericEventBody,
+        where: condition || {}
+    })
+    .then(result => res.json(result))
+    .catch(error => res.send(error).status(500))
+}
+
 /**
  * GET AN EVENT BY BAND ID FROM A CERTAIN MONTH
  * 
@@ -63,38 +72,48 @@ const genericEventBody = {
  *          produces:
  *              - application/json
  */
-router.get('/year/:year/month/:month', (req, res) => {
-    let parsedDate = moment(`${req.params.year}-${req.params.month}-${req.query.day || 1}`, 'YYYY-MM-DD')
-    let endDate = moment(parsedDate).add(1, 'month').add(7, 'days')
-    let startDate = moment(parsedDate).subtract(7, 'days');
+// router.get('/year/:year/month/:month', (req, res) => {
+//     let parsedDate = moment(`${req.params.year}-${req.params.month}-${req.query.day || 1}`, 'YYYY-MM-DD')
+//     let endDate = moment(parsedDate).add(1, 'month').add(7, 'days')
+//     let startDate = moment(parsedDate).subtract(7, 'days');
 
-    const getGenericEvents = condition => {
-        Event.findAll({
-            ...genericEventBody,
-            where: {
-                ...condition,
-                start_date: req.query.day
-                    ? { [Op.gte]: parsedDate }
-                    : {
-                        [Op.gte]: startDate,
-                        [Op.lte]: endDate
-                    }
+//     if (req.query.iduser)
+//         User.findOne({ where: { iduser: req.query.iduser }, include: Band })
+//         .then(user => {
+//             console.log(user.bands.map(b => b.idband))
+//             getGenericEvents(res, { band_idband: user.bands.map(b => b.idband) })
+//         })
+//     else if (req.query.idband)
+//         getGenericEvents(res, { band_idband: req.query.idband })
+//     else
+//         getGenericEvents(res, {})
+// })
+
+router.get('/community', (req, res) => {
+    let now = moment()
+    let parsedDate = moment(`${req.query.year || now.year()}-${req.query.month-1 || now.month()+1}-${req.query.day || now.date()}`, 'YYYY-MM-DD')
+    console.log(now, parsedDate)
+
+    getGenericEvents(res, {
+        [Op.or]: [
+            {
+                start_date: { [Op.gte]: parsedDate }
+            },
+            {
+                end_date: { [Op.gte]: parsedDate }
             }
-        })
-        .then(result => res.json(result))
-        .catch(error => res.send(error).status(500))
-    }
+        ]
+    })
+})
+
+router.get('/calendar', (req, res) => {
+    let idbands = [req.query.idband]
 
     if (req.query.iduser)
         User.findOne({ where: { iduser: req.query.iduser }, include: Band })
-        .then(user => {
-            console.log(user.bands.map(b => b.idband))
-            getGenericEvents({ band_idband: user.bands.map(b => b.idband) })
-        })
-    else if (req.query.idband)
-        getGenericEvents({ band_idband: req.query.idband })
-    else
-        getGenericEvents({})
+        .then(user => user == null ? '' : idbands.push(user.bands.map(b => b.idband)))
+
+    getGenericEvents(res, { band_idband: idbands })
 })
 
 router.get("/:idevent", (req, res) => {
@@ -136,7 +155,7 @@ router.get("/:idevent", (req, res) => {
  *                              location:
  *                                  type: string
  *                                  example: C. de Sta. Eugènia, 146, 17006 Girona
- *                              start_date:
+ *                              datetime:
  *                                  type: start_date
  *                                  example: 27/08/2023 18:00:00
  *                              idband:
