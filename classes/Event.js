@@ -27,6 +27,9 @@ const Event = db.define('event', {
     },
     status: {
         type: Sequelize.ENUM('Per confirmar','Confirmat','Anulat','Acabat')
+    },
+    main_photo: {
+        type: Sequelize.STRING
     }
 }, {tableName: 'event'})
 
