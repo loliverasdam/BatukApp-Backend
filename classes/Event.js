@@ -16,7 +16,10 @@ const Event = db.define('event', {
     location: {
         type: Sequelize.STRING
     },
-    datetime: {
+    start_date: {
+        type: Sequelize.DATE
+    },
+    end_date: {
         type: Sequelize.DATE
     },
     private: {

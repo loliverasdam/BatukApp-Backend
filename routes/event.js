@@ -73,7 +73,7 @@ router.get('/year/:year/month/:month', (req, res) => {
             ...genericEventBody,
             where: {
                 ...condition,
-                datetime: req.query.day
+                start_date: req.query.day
                     ? { [Op.gte]: parsedDate }
                     : {
                         [Op.gte]: startDate,
@@ -136,8 +136,8 @@ router.get("/:idevent", (req, res) => {
  *                              location:
  *                                  type: string
  *                                  example: C. de Sta. Eugènia, 146, 17006 Girona
- *                              datetime:
- *                                  type: datetime
+ *                              start_date:
+ *                                  type: start_date
  *                                  example: 27/08/2023 18:00:00
  *                              idband:
  *                                  type: integer
@@ -148,7 +148,7 @@ router.put('/:idevent', (req, res) => {
         name: req.body.name,
         description: req.body.description,
         location: req.body.location,
-        datetime: req.body.datetime,
+        start_date: req.body.start_date,
         band_idband: req.body.idband
 
     }, {
@@ -183,8 +183,8 @@ router.put('/:idevent', (req, res) => {
  *                              location:
  *                                  type: string
  *                                  example: C. de Sta. Eugènia, 146, 17006 Girona
- *                              datetime:
- *                                  type: datetime
+ *                              start_date:
+ *                                  type: start_date
  *                                  example: 27/08/2023 18:00:00
  *                              idband:
  *                                  type: integer
@@ -195,7 +195,7 @@ router.post('/', (req, res) => {
         name: req.body.name,
         description: req.body.description,
         location: req.body.location,
-        datetime: req.body.datetime,
+        start_date: req.body.start_date,
         band_idband: req.body.idband
     })
     .then(result => res.json(result).status(200))
