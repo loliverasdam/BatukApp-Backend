@@ -111,6 +111,10 @@ router.get('/calendar', (req, res) => {
         : getGenericEvents(res, { band_idband: [req.query.idband] })
 })
 
+router.get('/statuses', (req, res) => {
+    res.json(Event.rawAttributes.answer.values)
+})
+
 router.get("/:idevent", (req, res) => {
     Event.findOne({
         ...genericEventBody,
