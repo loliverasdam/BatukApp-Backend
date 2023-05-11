@@ -105,13 +105,10 @@ router.get('/community', (req, res) => {
 })
 
 router.get('/calendar', (req, res) => {
-    let idbands = [req.query.idband]
-
-    if (req.query.iduser)
-        User.findOne({ where: { iduser: req.query.iduser }, include: Band })
-        .then(user => user == null ? '' : idbands.push(user.bands.map(b => b.idband)))
-
-    getGenericEvents(res, { band_idband: idbands })
+    req.query.iduser
+        ? User.findOne({ where: { iduser: req.query.iduser }, include: Band })
+            .then(user => getGenericEvents(res, { band_idband: [req.query.idband, ...user.bands.map(b => b.idband)] }))
+        : getGenericEvents(res, { band_idband: [req.query.idband] })
 })
 
 router.get("/:idevent", (req, res) => {
