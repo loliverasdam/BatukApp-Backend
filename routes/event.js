@@ -80,7 +80,6 @@ const getGenericEvents = (res, condition) => {
 //     if (req.query.iduser)
 //         User.findOne({ where: { iduser: req.query.iduser }, include: Band })
 //         .then(user => {
-//             console.log(user.bands.map(b => b.idband))
 //             getGenericEvents(res, { band_idband: user.bands.map(b => b.idband) })
 //         })
 //     else if (req.query.idband)
@@ -92,7 +91,6 @@ const getGenericEvents = (res, condition) => {
 router.get('/community', (req, res) => {
     let now = moment()
     let parsedDate = moment(`${req.query.year || now.year()}-${req.query.month-1 || now.month()+1}-${req.query.day || now.date()}`, 'YYYY-MM-DD')
-    console.log(now, parsedDate)
 
     getGenericEvents(res, {
         [Op.or]: [

@@ -28,8 +28,8 @@ router.get('/', (req, res) => {
                 exclude: ["createdAt", "updatedAt", "band_idband"]
             }
         })
-        .then(result => {console.log("AAAAA");res.json(result)})
-        .catch(error => console.log(error))
+        .then(result => res.json(result))
+        .catch(error => res.send(error).status(500))
     }
 
     if (req.query.idsong) {
