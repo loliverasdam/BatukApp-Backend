@@ -167,8 +167,11 @@ router.put('/:idevent', (req, res) => {
         description: req.body.description,
         location: req.body.location,
         start_date: req.body.start_date,
-        band_idband: req.body.idband
-
+        end_date: req.body.end_date,
+        band_idband: req.body.idband,
+        private: req.body.private,
+        status: req.body.status,
+        main_photo: req.body.main_photo
     }, {
         where: {
             idevent: req.params.idevent
@@ -214,7 +217,11 @@ router.post('/', (req, res) => {
         description: req.body.description,
         location: req.body.location,
         start_date: req.body.start_date,
-        band_idband: req.body.idband
+        end_date: req.body.end_date,
+        band_idband: req.body.idband,
+        private: req.body.private,
+        status: req.body.status,
+        main_photo: req.body.main_photo
     })
     .then(result => res.json(result).status(200))
     .catch(error => res.send(error))
