@@ -112,7 +112,7 @@ router.get('/calendar', (req, res) => {
 })
 
 router.get('/statuses', (req, res) => {
-    res.json(Event.rawAttributes.answer.values)
+    res.json(Event.rawAttributes.status.values)
 })
 
 router.get("/:idevent", (req, res) => {
