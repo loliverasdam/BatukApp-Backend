@@ -39,20 +39,27 @@ const Assistance = require('../classes/Assistance')
  *          produces:
  *              - application/json
  */
-router.put('/:idevent', (req, res) => {
+router.post('/:idevent', (req, res) => {
     if (Array.isArray(req.body)) {
         let promises = []
 
-        req.body.map(user => 
-            promises.push(Assistance.update({
-                answer: user.answer, 
-                instrument_idinstrument: user.idinstrument
-            }, {
+        req.body.map(user =>
+            promises.push(Assistance.findOne({
                 where: {
-                    user_iduser: user.iduser,
+                    user_iduser: req.body.iduser,
                     event_idevent: req.params.idevent
                 }
             }))
+            .then(assistance => {
+                let assistanceData = {
+                    answer: req.body.answer,
+                    user_iduser: req.body.iduser,
+                    event_idevent: req.params.idevent
+                }
+                assistance == null
+                    ? Assistance.create(assistanceData)
+                    : assistance.update(assistanceData)
+            })
         )
 
         Promise.all(promises)
@@ -60,14 +67,23 @@ router.put('/:idevent', (req, res) => {
         .catch(error => res.send(error).status(500))
     }
     else {
-        Assistance.update({
-            answer: req.body.answer, 
-            instrument_idinstrument: req.body.idinstrument
-        }, {
+        Assistance.findOne({
             where: {
                 user_iduser: req.body.iduser,
                 event_idevent: req.params.idevent
             }
+        })
+        .then(assistance => {
+            let assistanceData = {
+                answer: req.body.answer,
+                user_iduser: req.body.iduser,
+                event_idevent: req.params.idevent
+            }
+            console.log(assistance)
+
+            assistance == null
+                ? Assistance.create(assistanceData)
+                : assistance.update(assistanceData)
         })
         .then(result => res.json(result).status(200))
         .catch(error => res.send(error).status(500))
