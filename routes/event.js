@@ -42,12 +42,15 @@ const genericEventBody = {
     }
 }
 
-const getGenericEvents = (res, condition) => {
+const getGenericEvents = (res, condition, utc) => {
     Event.findAll({
         ...genericEventBody,
         where: condition || {}
     })
-    .then(result => res.json(result))
+    .then(result => res.json(result.map(e => {
+        e.dataValues.start_date = moment(e.start_date).subtract(utc, 'hours').format("YYYY-MM-DD HH:mm:ss")
+        return e;
+    })))
     .catch(error => res.send(error).status(500))
 }
 
@@ -101,14 +104,14 @@ router.get('/community', (req, res) => {
                 end_date: { [Op.gte]: parsedDate }
             }
         ]
-    })
+    }, req.query.utc)
 })
 
 router.get('/calendar', (req, res) => {
     req.query.iduser
         ? User.findOne({ where: { iduser: req.query.iduser }, include: Band })
-            .then(user => getGenericEvents(res, { band_idband: [req.query.idband, ...user.bands.map(b => b.idband)] }))
-        : getGenericEvents(res, { band_idband: [req.query.idband] })
+            .then(user => getGenericEvents(res, { band_idband: [req.query.idband, ...user.bands.map(b => b.idband)] }, req.query.utc))
+        : getGenericEvents(res, { band_idband: [req.query.idband] }, req.query.utc)
 })
 
 router.get('/statuses', (req, res) => {
@@ -166,8 +169,8 @@ router.put('/:idevent', (req, res) => {
         name: req.body.name,
         description: req.body.description,
         location: req.body.location,
-        start_date: req.body.start_date,
-        end_date: req.body.end_date,
+        start_date: moment(req.body.start_date).add(req.query.utc, 'hours').format("YYYY-MM-DD HH:mm:ss"),
+        end_date: req.body.end_date == null ? undefined : moment(req.body.end_date).utc().format("YYYY-MM-DD HH:mm:ss"),
         band_idband: req.body.idband,
         private: req.body.private,
         status: req.body.status,
@@ -216,8 +219,8 @@ router.post('/', (req, res) => {
         name: req.body.name,
         description: req.body.description,
         location: req.body.location,
-        start_date: req.body.start_date,
-        end_date: req.body.end_date,
+        start_date: moment(req.body.start_date).add(req.query.utc, 'hours').format("YYYY-MM-DD HH:mm:ss"),
+        end_date: req.body.end_date == null ? undefined : moment(req.body.end_date).add(req.query.utc, 'hours').format("YYYY-MM-DD HH:mm:ss"),
         band_idband: req.body.idband,
         private: req.body.private,
         status: req.body.status,
