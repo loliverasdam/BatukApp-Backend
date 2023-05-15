@@ -43,50 +43,59 @@ router.post('/:idevent', (req, res) => {
     if (Array.isArray(req.body)) {
         let promises = []
 
-        req.body.map(user =>
-            promises.push(Assistance.findOne({
-                where: {
-                    user_iduser: req.body.iduser,
-                    event_idevent: req.params.idevent
-                }
-            }))
-            .then(assistance => {
-                let assistanceData = {
-                    answer: req.body.answer,
-                    user_iduser: req.body.iduser,
-                    event_idevent: req.params.idevent
-                }
-                assistance == null
-                    ? Assistance.create(assistanceData)
-                    : assistance.update(assistanceData)
-            })
-        )
+        req.body.map(data => {
+            if (data.answer != null)
+                promises.push(
+                    Assistance.findOne({
+                        where: {
+                            user_iduser: data.iduser,
+                            event_idevent: req.params.idevent
+                        }
+                    })
+                    .then(assistance => {
+                        let assistanceData = {
+                            answer: data.answer,
+                            user_iduser: data.iduser,
+                            event_idevent: req.params.idevent,
+                            instrument_idinstrument: data.idinstrument || undefined
+                        }
+
+                        assistance == null
+                            ? Assistance.create(assistanceData)
+                            : assistance.update(assistanceData)
+                    })
+                )
+        })
 
         Promise.all(promises)
         .then(result => res.json(result).status(200))
         .catch(error => res.send(error).status(500))
     }
     else {
-        Assistance.findOne({
-            where: {
-                user_iduser: req.body.iduser,
-                event_idevent: req.params.idevent
-            }
-        })
-        .then(assistance => {
-            let assistanceData = {
-                answer: req.body.answer,
-                user_iduser: req.body.iduser,
-                event_idevent: req.params.idevent
-            }
-            console.log(assistance)
+        if (data.answer != null) {
+            Assistance.findOne({
+                where: {
+                    user_iduser: req.body.iduser,
+                    event_idevent: req.params.idevent
+                }
+            })
+            .then(assistance => {
+                let assistanceData = {
+                    answer: req.body.answer,
+                    user_iduser: req.body.iduser,
+                    event_idevent: req.params.idevent,
+                    instrument_idinstrument: req.body.idinstrument || undefined
+                }
+                console.log(assistance)
 
-            assistance == null
-                ? Assistance.create(assistanceData)
-                : assistance.update(assistanceData)
-        })
-        .then(result => res.json(result).status(200))
-        .catch(error => res.send(error).status(500))
+                assistance == null
+                    ? Assistance.create(assistanceData)
+                    : assistance.update(assistanceData)
+            })
+            .then(result => res.json(result).status(200))
+            .catch(error => res.send(error).status(500))
+        }
+        else res.send("The request's body needs a 'answer' attribute").send(500)
     }
 })
 

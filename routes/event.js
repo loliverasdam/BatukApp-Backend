@@ -96,6 +96,7 @@ router.get('/community', (req, res) => {
     let parsedDate = moment(`${req.query.year || now.year()}-${req.query.month-1 || now.month()+1}-${req.query.day || now.date()}`, 'YYYY-MM-DD')
 
     getGenericEvents(res, {
+        private: false,
         [Op.or]: [
             {
                 start_date: { [Op.gte]: parsedDate }
